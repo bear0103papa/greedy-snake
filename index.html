@@ -20,7 +20,7 @@
     <button id="startButton">開始遊戲</button>
     <canvas id="gameCanvas" width="640" height="480"></canvas>
     <script type="text/python">
-        from browser import document, html, timer
+        from browser import document, html, timer, console
         import random
 
         # Constants
@@ -120,7 +120,6 @@
             def start_game(event):
                 if not game.running:
                     game.running = True
-                    game.reset()
                     timer.set_interval(update, 100)
 
             start_button = document["startButton"]
