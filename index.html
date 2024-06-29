@@ -4,10 +4,21 @@
     <meta charset="UTF-8">
     <title>Snake Game with AI</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+        #startButton {
+            margin: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body onload="brython()">
     <h1>Snake Game with AI</h1>
-    <canvas id="gameCanvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
+    <button id="startButton">開始遊戲</button>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
     <script type="text/python">
         from browser import document, html, timer
         import random
@@ -73,6 +84,7 @@
             def __init__(self):
                 self.snake = Snake()
                 self.food_pos = self.spawn_food()
+                self.running = False
 
             def spawn_food(self):
                 return [random.randrange(1, (WIDTH // CELL_SIZE)) * CELL_SIZE,
@@ -92,18 +104,27 @@
             def reset(self):
                 self.snake = Snake()
                 self.food_pos = self.spawn_food()
+                self.running = False
 
         def main():
             game = Game()
 
             def update():
-                if game.snake.move(game.food_pos):
-                    game.food_pos = game.spawn_food()
-                if game.snake.check_collision():
-                    game.reset()
-                game.render()
+                if game.running:
+                    if game.snake.move(game.food_pos):
+                        game.food_pos = game.spawn_food()
+                    if game.snake.check_collision():
+                        game.reset()
+                    game.render()
 
-            timer.set_interval(update, 100)
+            def start_game(event):
+                if not game.running:
+                    game.running = True
+                    game.reset()
+                    timer.set_interval(update, 100)
+
+            start_button = document["startButton"]
+            start_button.bind("click", start_game)
 
         main()
     </script>
