@@ -33,6 +33,7 @@
     <div class="buttons">
         <button onclick="startGame()">Start Game</button>
         <button onclick="resetGame()">Reset Game</button>
+        <button onclick="startAI()">AI</button>
     </div>
     <div class="difficulty">
         <label for="difficulty">Select Difficulty:</label>
@@ -56,10 +57,12 @@
         let fruit;
         let gameInterval;
         let speed = 250;
+        let aiMode = false;
 
         function startGame() {
             clearInterval(gameInterval);
             document.getElementById('gameOver').style.display = 'none';
+            aiMode = false;
 
             const difficulty = document.getElementById('difficulty').value;
             switch (difficulty) {
@@ -106,8 +109,10 @@
         }
 
         window.addEventListener('keydown', ((evt) => {
-            const direction = evt.key.replace('Arrow', '');
-            snake.changeDirection(direction);
+            if (!aiMode) {
+                const direction = evt.key.replace('Arrow', '');
+                snake.changeDirection(direction);
+            }
         }));
 
         function Snake() {
@@ -137,22 +142,6 @@
 
                 this.x += this.xSpeed;
                 this.y += this.ySpeed;
-
-                if (this.x >= canvas.width) {
-                    this.x = 0;
-                }
-
-                if (this.y >= canvas.height) {
-                    this.y = 0;
-                }
-
-                if (this.x < 0) {
-                    this.x = canvas.width - scale;
-                }
-
-                if (this.y < 0) {
-                    this.y = canvas.height - scale;
-                }
             };
 
             this.changeDirection = function (direction) {
@@ -220,6 +209,51 @@
                 ctx.fillStyle = "#ff5555";
                 ctx.fillRect(this.x, this.y, scale, scale);
             };
+        }
+
+        function startAI() {
+            clearInterval(gameInterval);
+            document.getElementById('gameOver').style.display = 'none';
+            aiMode = true;
+
+            speed = 50;
+
+            snake = new Snake();
+            fruit = new Fruit();
+            fruit.pickLocation();
+
+            gameInterval = window.setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                fruit.draw();
+                snake.update();
+                snake.draw();
+
+                if (snake.eat(fruit)) {
+                    fruit.pickLocation();
+                }
+
+                if (snake.checkCollision()) {
+                    gameOver();
+                }
+
+                aiControl();
+            }, speed);
+        }
+
+        function aiControl() {
+            const head = { x: snake.x, y: snake.y };
+            const target = { x: fruit.x, y: fruit.y };
+
+            // Determine the direction to move
+            if (head.x < target.x) {
+                snake.changeDirection('Right');
+            } else if (head.x > target.x) {
+                snake.changeDirection('Left');
+            } else if (head.y < target.y) {
+                snake.changeDirection('Down');
+            } else if (head.y > target.y) {
+                snake.changeDirection('Up');
+            }
         }
     </script>
 </body>
