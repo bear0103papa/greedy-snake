@@ -34,6 +34,14 @@
         <button onclick="startGame()">Start Game</button>
         <button onclick="resetGame()">Reset Game</button>
     </div>
+    <div class="difficulty">
+        <label for="difficulty">Select Difficulty:</label>
+        <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+    </div>
     <div class="game-over" id="gameOver">Game Over</div>
 
     <script>
@@ -47,10 +55,25 @@
         let snake;
         let fruit;
         let gameInterval;
+        let speed = 250;
 
         function startGame() {
             clearInterval(gameInterval);
             document.getElementById('gameOver').style.display = 'none';
+
+            const difficulty = document.getElementById('difficulty').value;
+            switch (difficulty) {
+                case 'easy':
+                    speed = 250;
+                    break;
+                case 'medium':
+                    speed = 150;
+                    break;
+                case 'hard':
+                    speed = 75;
+                    break;
+            }
+
             snake = new Snake();
             fruit = new Fruit();
             fruit.pickLocation();
@@ -68,7 +91,7 @@
                 if (snake.checkCollision()) {
                     gameOver();
                 }
-            }, 250);
+            }, speed);
         }
 
         function resetGame() {
@@ -114,6 +137,22 @@
 
                 this.x += this.xSpeed;
                 this.y += this.ySpeed;
+
+                if (this.x >= canvas.width) {
+                    this.x = 0;
+                }
+
+                if (this.y >= canvas.height) {
+                    this.y = 0;
+                }
+
+                if (this.x < 0) {
+                    this.x = canvas.width - scale;
+                }
+
+                if (this.y < 0) {
+                    this.y = canvas.height - scale;
+                }
             };
 
             this.changeDirection = function (direction) {
