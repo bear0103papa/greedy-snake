@@ -1,116 +1,260 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Snake Game with AI</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
     <style>
-        canvas {
-            border: 1px solid black;
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #gameCanvas {
+            border: 1px solid #000;
+            background-color: #fff;
+        }
+        .buttons {
+            margin-top: 10px;
+        }
+        .game-over {
+            display: none;
+            font-size: 24px;
+            color: red;
         }
     </style>
 </head>
-<body onload="brython()">
-    <h1>Snake Game with AI</h1>
-    <canvas id="gameCanvas" width="640" height="480"></canvas>
-    <script type="text/python">
-        from browser import document, html, timer
-        import random
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="buttons">
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="resetGame()">Reset Game</button>
+        <button onclick="startAI()">AI</button>
+    </div>
+    <div class="difficulty">
+        <label for="difficulty">Select Difficulty:</label>
+        <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+    </div>
+    <div class="game-over" id="gameOver">Game Over</div>
 
-        # Constants
-        WIDTH, HEIGHT = 640, 480
-        CELL_SIZE = 20
-        UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
-        BLACK = "black"
-        GREEN = "green"
-        RED = "red"
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        class Snake:
-            def __init__(self):
-                self.position = [100, 50]
-                self.body = [[100, 50], [90, 50], [80, 50]]
-                self.direction = RIGHT
+        const scale = 20;
+        const rows = canvas.height / scale;
+        const columns = canvas.width / scale;
 
-            def change_direction(self, dir):
-                if dir == UP and self.direction != DOWN:
-                    self.direction = UP
-                if dir == DOWN and self.direction != UP:
-                    self.direction = DOWN
-                if dir == LEFT and self.direction != RIGHT:
-                    self.direction = LEFT
-                if dir == RIGHT and self.direction != LEFT:
-                    self.direction = RIGHT
+        let snake;
+        let fruit;
+        let gameInterval;
+        let speed = 250;
+        let aiMode = false;
 
-            def move(self, food_pos):
-                if self.direction == UP:
-                    self.position[1] -= CELL_SIZE
-                if self.direction == DOWN:
-                    self.position[1] += CELL_SIZE
-                if self.direction == LEFT:
-                    self.position[0] -= CELL_SIZE
-                if self.direction == RIGHT:
-                    self.position[0] += CELL_SIZE
+        function startGame() {
+            clearInterval(gameInterval);
+            document.getElementById('gameOver').style.display = 'none';
+            aiMode = false;
 
-                self.body.insert(0, list(self.position))
-                if self.position == food_pos:
-                    return True
-                else:
-                    self.body.pop()
-                    return False
+            const difficulty = document.getElementById('difficulty').value;
+            switch (difficulty) {
+                case 'easy':
+                    speed = 250;
+                    break;
+                case 'medium':
+                    speed = 150;
+                    break;
+                case 'hard':
+                    speed = 75;
+                    break;
+            }
 
-            def check_collision(self):
-                if self.position[0] < 0 or self.position[0] >= WIDTH:
-                    return True
-                if self.position[1] < 0 or self.position[1] >= HEIGHT:
-                    return True
-                for block in self.body[1:]:
-                    if self.position == block:
-                        return True
-                return False
+            snake = new Snake();
+            fruit = new Fruit();
+            fruit.pickLocation();
 
-            def get_head_position(self):
-                return self.position
+            gameInterval = window.setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                fruit.draw();
+                snake.update();
+                snake.draw();
 
-            def get_body(self):
-                return self.body
+                if (snake.eat(fruit)) {
+                    fruit.pickLocation();
+                }
 
-        class Game:
-            def __init__(self):
-                self.snake = Snake()
-                self.food_pos = self.spawn_food()
+                if (snake.checkCollision()) {
+                    gameOver();
+                }
+            }, speed);
+        }
 
-            def spawn_food(self):
-                return [random.randrange(1, (WIDTH // CELL_SIZE)) * CELL_SIZE,
-                        random.randrange(1, (HEIGHT // CELL_SIZE)) * CELL_SIZE]
+        function resetGame() {
+            clearInterval(gameInterval);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('gameOver').style.display = 'none';
+        }
 
-            def render(self):
-                canvas = document["gameCanvas"]
-                ctx = canvas.getContext("2d")
-                ctx.fillStyle = BLACK
-                ctx.fillRect(0, 0, WIDTH, HEIGHT)
-                for pos in self.snake.get_body():
-                    ctx.fillStyle = GREEN
-                    ctx.fillRect(pos[0], pos[1], CELL_SIZE, CELL_SIZE)
-                ctx.fillStyle = RED
-                ctx.fillRect(self.food_pos[0], self.food_pos[1], CELL_SIZE, CELL_SIZE)
+        function gameOver() {
+            clearInterval(gameInterval);
+            document.getElementById('gameOver').style.display = 'block';
+        }
 
-            def reset(self):
-                self.snake = Snake()
-                self.food_pos = self.spawn_food()
+        window.addEventListener('keydown', ((evt) => {
+            if (!aiMode) {
+                const direction = evt.key.replace('Arrow', '');
+                snake.changeDirection(direction);
+            }
+        }));
 
-        def main():
-            game = Game()
+        function Snake() {
+            this.x = 0;
+            this.y = 0;
+            this.xSpeed = scale * 1;
+            this.ySpeed = 0;
+            this.total = 0;
+            this.tail = [];
 
-            def update():
-                if game.snake.move(game.food_pos):
-                    game.food_pos = game.spawn_food()
-                if game.snake.check_collision():
-                    game.reset()
-                game.render()
+            this.draw = function () {
+                ctx.fillStyle = "#4cafab";
 
-            timer.set_interval(update, 100)
+                for (let i = 0; i < this.tail.length; i++) {
+                    ctx.fillRect(this.tail[i].x, this.tail[i].y, scale, scale);
+                }
 
-        main()
+                ctx.fillRect(this.x, this.y, scale, scale);
+            };
+
+            this.update = function () {
+                for (let i = 0; i < this.tail.length - 1; i++) {
+                    this.tail[i] = this.tail[i + 1];
+                }
+
+                this.tail[this.total - 1] = { x: this.x, y: this.y };
+
+                this.x += this.xSpeed;
+                this.y += this.ySpeed;
+            };
+
+            this.changeDirection = function (direction) {
+                switch (direction) {
+                    case 'Up':
+                        if (this.ySpeed === 0) {
+                            this.xSpeed = 0;
+                            this.ySpeed = -scale * 1;
+                        }
+                        break;
+                    case 'Down':
+                        if (this.ySpeed === 0) {
+                            this.xSpeed = 0;
+                            this.ySpeed = scale * 1;
+                        }
+                        break;
+                    case 'Left':
+                        if (this.xSpeed === 0) {
+                            this.xSpeed = -scale * 1;
+                            this.ySpeed = 0;
+                        }
+                        break;
+                    case 'Right':
+                        if (this.xSpeed === 0) {
+                            this.xSpeed = scale * 1;
+                            this.ySpeed = 0;
+                        }
+                        break;
+                }
+            };
+
+            this.eat = function (fruit) {
+                if (this.x === fruit.x && this.y === fruit.y) {
+                    this.total++;
+                    return true;
+                }
+                return false;
+            };
+
+            this.checkCollision = function () {
+                // Check collision with walls
+                if (this.x >= canvas.width || this.x < 0 || this.y >= canvas.height || this.y < 0) {
+                    return true;
+                }
+                // Check collision with itself
+                for (let i = 0; i < this.tail.length; i++) {
+                    if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+        }
+
+        function Fruit() {
+            this.x;
+            this.y;
+
+            this.pickLocation = function () {
+                this.x = Math.floor(Math.random() * rows) * scale;
+                this.y = Math.floor(Math.random() * columns) * scale;
+            };
+
+            this.draw = function () {
+                ctx.fillStyle = "#ff5555";
+                ctx.fillRect(this.x, this.y, scale, scale);
+            };
+        }
+
+        function startAI() {
+            clearInterval(gameInterval);
+            document.getElementById('gameOver').style.display = 'none';
+            aiMode = true;
+
+            speed = 50;
+
+            snake = new Snake();
+            fruit = new Fruit();
+            fruit.pickLocation();
+
+            gameInterval = window.setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                fruit.draw();
+                snake.update();
+                snake.draw();
+
+                if (snake.eat(fruit)) {
+                    fruit.pickLocation();
+                }
+
+                if (snake.checkCollision()) {
+                    gameOver();
+                }
+
+                aiControl();
+            }, speed);
+        }
+
+        function aiControl() {
+            const head = { x: snake.x, y: snake.y };
+            const target = { x: fruit.x, y: fruit.y };
+
+            // Determine the direction to move
+            if (head.x < target.x) {
+                snake.changeDirection('Right');
+            } else if (head.x > target.x) {
+                snake.changeDirection('Left');
+            } else if (head.y < target.y) {
+                snake.changeDirection('Down');
+            } else if (head.y > target.y) {
+                snake.changeDirection('Up');
+            }
+        }
     </script>
 </body>
 </html>
