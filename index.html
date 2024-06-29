@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Snake Game with AI</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brython@3.9.5/brython.min.js"></script>
+</head>
+<body onload="brython()">
+    <h1>Snake Game with AI</h1>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <script type="text/python">
+        from browser import document, html, timer
+        import random
+
+        # Pygame-like constants
+        WIDTH, HEIGHT = 640, 480
+        CELL_SIZE = 20
+        BLACK = "black"
+        WHITE = "white"
+        GREEN = "green"
+        RED = "red"
+        UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
+
+        class Snake:
+            def __init__(self):
+                self.position = [100, 50]
+                self.body = [[100, 50], [90, 50], [80, 50]]
+                self.direction = RIGHT
+                self.change_to = self.direction
+
+            def change_direction(self, dir):
+                if dir == UP and self.direction != DOWN:
+                    self.direction = UP
+                if dir == DOWN and self.direction != UP:
+                    self.direction = DOWN
+                if dir == LEFT and self.direction != RIGHT:
+                    self.direction = LEFT
+                if dir == RIGHT and self.direction != LEFT:
+                    self.direction = RIGHT
+
+            def move(self, food_pos):
+                if self.direction == UP:
+                    self.position[1] -= CELL_SIZE
+                if self.direction == DOWN:
+                    self.position[1] += CELL_SIZE
+                if self.direction == LEFT:
+                    self.position[0] -= CELL_SIZE
+                if self.direction == RIGHT:
+                    self.position[0] += CELL_SIZE
+
+                self.body.insert(0, list(self.position))
+                if self.position == food_pos:
+                    return True
+                else:
+                    self.body.pop()
+                    return False
+
+            def check_collision(self):
+                if self.position[0] < 0 or self.position[0] > WIDTH - CELL_SIZE:
+                    return True
+                if self.position[1] < 0 or self.position[1] > HEIGHT - CELL_SIZE:
+                    return True
+                for block in self.body[1:]:
+                    if self.position == block:
+                        return True
+                return False
+
+            def get_head_position(self):
+                return self.position
+
+            def get_body(self):
+                return self.body
+
+        class Game:
+            def __init__(self):
+                self.snake = Snake()
+                self.food_pos = self.spawn_food()
+
+            def spawn_food(self):
+                return [random.randrange(1, (WIDTH // CELL_SIZE)) * CELL_SIZE,
+                        random.randrange(1, (HEIGHT // CELL_SIZE)) * CELL_SIZE]
+
+            def render(self):
+                canvas = document["gameCanvas"]
+                ctx = canvas.getContext("2d")
+                ctx.fillStyle = BLACK
+                ctx.fillRect(0, 0, WIDTH, HEIGHT)
+                for pos in self.snake.get_body():
+                    ctx.fillStyle = GREEN
+                    ctx.fillRect(pos[0], pos[1], CELL_SIZE, CELL_SIZE)
+                ctx.fillStyle = RED
+                ctx.fillRect(self.food_pos[0], self.food_pos[1], CELL_SIZE, CELL_SIZE)
+
+            def reset(self):
+                self.snake = Snake()
+                self.food_pos = self.spawn_food()
+
+        def main():
+            game = Game()
+
+            def update():
+                if game.snake.move(game.food_pos):
+                    game.food_pos = game.spawn_food()
+                if game.snake.check_collision():
+                    game.reset()
+                game.render()
+
+            timer.set_interval(update, 100)
+
+        main()
+    </script>
+</body>
+</html>
