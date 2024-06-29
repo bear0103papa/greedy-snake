@@ -21,6 +21,11 @@
         .buttons {
             margin-top: 10px;
         }
+        .game-over {
+            display: none;
+            font-size: 24px;
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -29,6 +34,7 @@
         <button onclick="startGame()">Start Game</button>
         <button onclick="resetGame()">Reset Game</button>
     </div>
+    <div class="game-over" id="gameOver">Game Over</div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -44,6 +50,7 @@
 
         function startGame() {
             clearInterval(gameInterval);
+            document.getElementById('gameOver').style.display = 'none';
             snake = new Snake();
             fruit = new Fruit();
             fruit.pickLocation();
@@ -58,13 +65,21 @@
                     fruit.pickLocation();
                 }
 
-                snake.checkCollision();
+                if (snake.checkCollision()) {
+                    gameOver();
+                }
             }, 250);
         }
 
         function resetGame() {
             clearInterval(gameInterval);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('gameOver').style.display = 'none';
+        }
+
+        function gameOver() {
+            clearInterval(gameInterval);
+            document.getElementById('gameOver').style.display = 'block';
         }
 
         window.addEventListener('keydown', ((evt) => {
@@ -99,22 +114,6 @@
 
                 this.x += this.xSpeed;
                 this.y += this.ySpeed;
-
-                if (this.x >= canvas.width) {
-                    this.x = 0;
-                }
-
-                if (this.y >= canvas.height) {
-                    this.y = 0;
-                }
-
-                if (this.x < 0) {
-                    this.x = canvas.width - scale;
-                }
-
-                if (this.y < 0) {
-                    this.y = canvas.height - scale;
-                }
             };
 
             this.changeDirection = function (direction) {
@@ -155,12 +154,17 @@
             };
 
             this.checkCollision = function () {
+                // Check collision with walls
+                if (this.x >= canvas.width || this.x < 0 || this.y >= canvas.height || this.y < 0) {
+                    return true;
+                }
+                // Check collision with itself
                 for (let i = 0; i < this.tail.length; i++) {
                     if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
-                        this.total = 0;
-                        this.tail = [];
+                        return true;
                     }
                 }
+                return false;
             };
         }
 
