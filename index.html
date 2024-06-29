@@ -7,26 +7,24 @@
 </head>
 <body onload="brython()">
     <h1>Snake Game with AI</h1>
-    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <canvas id="gameCanvas" width="640" height="480" style="border:1px solid #000000;"></canvas>
     <script type="text/python">
         from browser import document, html, timer
         import random
 
-        # Pygame-like constants
+        # Constants
         WIDTH, HEIGHT = 640, 480
         CELL_SIZE = 20
+        UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
         BLACK = "black"
-        WHITE = "white"
         GREEN = "green"
         RED = "red"
-        UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
         class Snake:
             def __init__(self):
                 self.position = [100, 50]
                 self.body = [[100, 50], [90, 50], [80, 50]]
                 self.direction = RIGHT
-                self.change_to = self.direction
 
             def change_direction(self, dir):
                 if dir == UP and self.direction != DOWN:
@@ -56,9 +54,9 @@
                     return False
 
             def check_collision(self):
-                if self.position[0] < 0 or self.position[0] > WIDTH - CELL_SIZE:
+                if self.position[0] < 0 or self.position[0] >= WIDTH:
                     return True
-                if self.position[1] < 0 or self.position[1] > HEIGHT - CELL_SIZE:
+                if self.position[1] < 0 or self.position[1] >= HEIGHT:
                     return True
                 for block in self.body[1:]:
                     if self.position == block:
