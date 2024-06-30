@@ -240,18 +240,34 @@
             }, speed);
         }
 
+        // function aiControl() {
+        //     const head = { x: snake.x, y: snake.y };
+        //     const target = { x: fruit.x, y: fruit.y };
+
+        //     // Determine the direction to move
+        //     if (head.x < target.x) {
+        //         snake.changeDirection('Right');
+        //     } else if (head.x > target.x) {
+        //         snake.changeDirection('Left');
+        //     } else if (head.y < target.y) {
+        //         snake.changeDirection('Down');
+        //     } else if (head.y > target.y) {
+        //         snake.changeDirection('Up');
+        //     }
+        // }
+        
         function aiControl() {
             const head = { x: snake.x, y: snake.y };
             const target = { x: fruit.x, y: fruit.y };
 
             // Determine the direction to move
-            if (head.x < target.x) {
+            if (head.x < target.x && snake.xSpeed === 0) {
                 snake.changeDirection('Right');
-            } else if (head.x > target.x) {
+            } else if (head.x > target.x && snake.xSpeed === 0) {
                 snake.changeDirection('Left');
-            } else if (head.y < target.y) {
+            } else if (head.y < target.y && snake.ySpeed === 0) {
                 snake.changeDirection('Down');
-            } else if (head.y > target.y) {
+            } else if (head.y > target.y && snake.ySpeed === 0) {
                 snake.changeDirection('Up');
             }
         }
