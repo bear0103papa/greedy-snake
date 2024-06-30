@@ -271,7 +271,7 @@
         //         snake.changeDirection('Up');
         //     }
         // }
-       function aiControl() {
+function aiControl() {
     const head = { x: snake.x, y: snake.y };
     const target = { x: fruit.x, y: fruit.y };
 
@@ -283,10 +283,13 @@
     // Determine the direction to move
     if (snake.ySpeed === 0) { // Moving horizontally
         if (head.x < fruit.x && snake.xSpeed === 0 && snake.x < canvas.width - scale) {
+            // Move right if fruit is to the right and not at right wall
             snake.changeDirection('Right');
         } else if (head.x > fruit.x && snake.xSpeed === 0 && snake.x > 0) {
+            // Move left if fruit is to the left and not at left wall
             snake.changeDirection('Left');
         } else {
+            // Prioritize moving towards the fruit if no obstacle
             if (distanceUp < distanceDown && snake.y === 0) {
                 snake.changeDirection('Up');
             } else if (distanceDown <= distanceUp && snake.y === canvas.height - scale) {
@@ -295,10 +298,13 @@
         }
     } else if (snake.xSpeed === 0) { // Moving vertically
         if (head.y < fruit.y && snake.ySpeed === 0 && snake.y < canvas.height - scale) {
+            // Move down if fruit is below and not at bottom wall
             snake.changeDirection('Down');
         } else if (head.y > fruit.y && snake.ySpeed === 0 && snake.y > 0) {
+            // Move up if fruit is above and not at top wall
             snake.changeDirection('Up');
         } else {
+            // Prioritize moving towards the fruit if no obstacle
             if (distanceLeft < distanceRight && snake.x === 0) {
                 snake.changeDirection('Left');
             } else if (distanceRight <= distanceLeft && snake.x === canvas.width - scale) {
@@ -307,7 +313,6 @@
         }
     }
 }
-
     </script>
 </body>
 </html>
