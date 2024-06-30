@@ -256,21 +256,61 @@
         //     }
         // }
         
-        function aiControl() {
-            const head = { x: snake.x, y: snake.y };
-            const target = { x: fruit.x, y: fruit.y };
+        // function aiControl() {
+        //     const head = { x: snake.x, y: snake.y };
+        //     const target = { x: fruit.x, y: fruit.y };
 
-            // Determine the direction to move
-            if (head.x < target.x && snake.xSpeed === 0) {
-                snake.changeDirection('Right');
-            } else if (head.x > target.x && snake.xSpeed === 0) {
-                snake.changeDirection('Left');
-            } else if (head.y < target.y && snake.ySpeed === 0) {
-                snake.changeDirection('Down');
-            } else if (head.y > target.y && snake.ySpeed === 0) {
+        //     // Determine the direction to move
+        //     if (head.x < target.x && snake.xSpeed === 0) {
+        //         snake.changeDirection('Right');
+        //     } else if (head.x > target.x && snake.xSpeed === 0) {
+        //         snake.changeDirection('Left');
+        //     } else if (head.y < target.y && snake.ySpeed === 0) {
+        //         snake.changeDirection('Down');
+        //     } else if (head.y > target.y && snake.ySpeed === 0) {
+        //         snake.changeDirection('Up');
+        //     }
+        // }
+        function aiControl() {
+    const head = { x: snake.x, y: snake.y };
+    const target = { x: fruit.x, y: fruit.y };
+
+    // Calculate distances to edges
+    const distanceUp = head.y;
+    const distanceDown = canvas.height - scale - head.y;
+    const distanceLeft = head.x;
+    const distanceRight = canvas.width - scale - head.x;
+
+    // Determine the direction to move
+    if (snake.ySpeed === 0) { // Moving horizontally
+        if (head.x < fruit.x && snake.xSpeed === 0) {
+            snake.changeDirection('Right');
+        } else if (head.x > fruit.x && snake.xSpeed === 0) {
+            snake.changeDirection('Left');
+        } else {
+            // Prioritize moving towards the edge with the least distance
+            if (distanceUp < distanceDown && snake.y === 0) {
                 snake.changeDirection('Up');
+            } else if (distanceDown <= distanceUp && snake.y === canvas.height - scale) {
+                snake.changeDirection('Down');
             }
         }
+    } else if (snake.xSpeed === 0) { // Moving vertically
+        if (head.y < fruit.y && snake.ySpeed === 0) {
+            snake.changeDirection('Down');
+        } else if (head.y > fruit.y && snake.ySpeed === 0) {
+            snake.changeDirection('Up');
+        } else {
+            // Prioritize moving towards the edge with the least distance
+            if (distanceLeft < distanceRight && snake.x === 0) {
+                snake.changeDirection('Left');
+            } else if (distanceRight <= distanceLeft && snake.x === canvas.width - scale) {
+                snake.changeDirection('Right');
+            }
+        }
+    }
+}
+
     </script>
 </body>
 </html>
